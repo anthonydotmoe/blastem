@@ -56,6 +56,19 @@ static uint16_t branch_f;
 static bp_def * breakpoints = NULL;
 static uint32_t bp_index = 0;
 
+void gdb_send_command(char * command);
+
+static void gdb_request_exit(m68k_context *context, uint8_t send_ok)
+{
+	if (send_ok) {
+		gdb_send_command("OK");
+	}
+	((system_header *)context->system)->should_exit = 1;
+	context->should_return = 1;
+	cont = 1;
+	expect_break_response = 0;
+}
+
 
 void hex_32(uint32_t num, char * out)
 {
@@ -226,6 +239,9 @@ void gdb_run_command(m68k_context * context, uint32_t pc, char * command)
 		} else {
 			goto not_impl;
 		}
+		break;
+	case 'k':
+		gdb_request_exit(context, 0);
 		break;
 	case 'Z': {
 		uint8_t type = command[1];
@@ -402,6 +418,8 @@ void gdb_run_command(m68k_context * context, uint32_t pc, char * command)
 			gdb_send_command("vCont;c;C;s;S");
 		} else if (!strcmp("MustReplyEmpty", command + 1)) {
 			gdb_send_command("");
+		} else if (!memcmp("Kill", command+1, strlen("Kill"))) {
+			gdb_request_exit(context, 1);
 		} else if (!memcmp("Cont;", command+1, strlen("Cont;"))) {
 			switch (*(command + 1 + strlen("Cont;")))
 			{

@@ -480,6 +480,14 @@ int main(int argc, char ** argv)
 	char *port;
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
+			if (argv[i][1] == '-') {
+				if (!strcmp(argv[i], "--headless")) {
+					headless = 1;
+					exit_after = 0;
+					continue;
+				}
+				fatal_error("Unrecognized switch %s\n", argv[i]);
+			}
 			switch(argv[i][1]) {
 			case 'b':
 				i++;
@@ -593,6 +601,7 @@ int main(int argc, char ** argv)
 					"                   jag - Atari Jaguar\n"
 					"	-f          Toggles fullscreen mode\n"
 					"	-g          Disable OpenGL rendering\n"
+					"	--headless  Disable rendering/output and run without a display\n"
 					"	-s FILE     Load a GST format savestate from FILE\n"
 					"	-o FILE     Load FILE as a lock-on cartridge\n"
 					"	-d          Enter debugger on startup\n"
